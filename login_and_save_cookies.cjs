@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 // One-shot login helper for the Amazon MCP server.
-// Launches Puppeteer (visible), auto-fills email + password from
-// AMAZON_EMAIL / AMAZON_PASSWORD env vars, then polls the page until it
-// detects a logged-in state (URL leaves /ap/signin AND an account greeting
-// element appears). Saves the resulting cookies to amazonCookies.json.
+// Launches Puppeteer (visible), then polls the page until it detects a
+// logged-in state (URL leaves /ap/signin AND an account greeting element
+// appears). Saves the resulting cookies to amazonCookies.json.
+//
+// Credentials are OPTIONAL. With no env vars set, the sign-in page just opens
+// and you type them yourself — nothing sensitive lands in the environment,
+// shell history, or a process listing. Set AMAZON_EMAIL / AMAZON_PASSWORD only
+// if you want the form pre-filled.
 //
 // Domain is controlled by the AMAZON_DOMAIN env var (default: amazon.com).
 // Examples: AMAZON_DOMAIN=amazon.de  AMAZON_DOMAIN=amazon.co.uk
@@ -24,11 +28,7 @@ const COOKIE_FILE = path.join(__dirname, "amazonCookies.json");
 const POLL_INTERVAL_MS = 2000;
 const DEADLINE_MS = 15 * 60 * 1000;
 
-if (!EMAIL || !PASSWORD) {
-  console.error("Set AMAZON_EMAIL and AMAZON_PASSWORD env vars.");
-  console.error("Optionally set AMAZON_DOMAIN (default: amazon.com). E.g. AMAZON_DOMAIN=amazon.de");
-  process.exit(1);
-}
+const AUTOFILL = Boolean(EMAIL && PASSWORD);
 
 // Escape the domain for use in a RegExp (".com" → "\\.com").
 const DOMAIN_RE = new RegExp(DOMAIN.replace(/\./g, "\\.") + "$");
@@ -97,7 +97,12 @@ async function isLoggedIn(page) {
   console.error(`[login] navigating to ${DOMAIN} sign-in…`);
   await page.goto(SIGNIN_URL, { waitUntil: "domcontentloaded" });
 
+  if (!AUTOFILL) {
+    console.error("[login] no AMAZON_EMAIL/AMAZON_PASSWORD set — sign in manually in the open window.");
+  }
+
   try {
+    if (!AUTOFILL) throw new Error("manual login");
     await page.waitForSelector("#ap_email, #ap_email_login", { timeout: 15000 });
     const emailSel = (await page.$("#ap_email")) ? "#ap_email" : "#ap_email_login";
     await page.click(emailSel, { clickCount: 3 });
@@ -121,7 +126,9 @@ async function isLoggedIn(page) {
       ]);
     }
   } catch (e) {
-    console.error("[login] auto-fill stopped early (CAPTCHA / OTP / unfamiliar layout). Finish manually in the open window.");
+    if (AUTOFILL) {
+      console.error("[login] auto-fill stopped early (CAPTCHA / OTP / unfamiliar layout). Finish manually in the open window.");
+    }
   }
 
   console.error("");

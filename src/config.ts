@@ -1,16 +1,25 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { loadAmazonCookiesFile } from './utils.js'
 
-const __dirname = new URL('.', import.meta.url).pathname
+// `new URL(...).pathname` yields "/C:/..." on Windows, which Node resolves to
+// "C:\C:\..." and fails with ENOENT. fileURLToPath gives a real native path.
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 export const IS_BROWSER_VISIBLE = false
 
 /** Use local mock files instead of live scraping */
 export const USE_MOCKS = false
 
-/** Export live scraping HTML to mocks for future use */
-export const EXPORT_LIVE_SCRAPING_FOR_MOCKS = true
+/**
+ * Export live scraping HTML to mocks for future use.
+ * Off by default: the exported HTML contains live account data (order history,
+ * delivery addresses, cart contents) and writing it to disk on every call is
+ * unnecessary outside of test-fixture work.
+ */
+export const EXPORT_LIVE_SCRAPING_FOR_MOCKS = false
 
-export const COOKIES_FILE_PATH = `${__dirname}/../amazonCookies.json`
+export const COOKIES_FILE_PATH = path.join(__dirname, '..', 'amazonCookies.json')
 /**
  * Go to the Amazon website and log in to your account
  * Then export cookies as JSON using a browser extension like "Cookie-Editor"

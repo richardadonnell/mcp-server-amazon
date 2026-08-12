@@ -285,26 +285,10 @@ server.tool(
   }
 )
 
-server.tool(
-  'perform-purchase',
-  'Checkout with the current cart and complete the purchase - ' +
-    'Before purchasing, you should verify in the cart content that your are not buying another product that was already there. ' +
-    'If there are other products, clear the cart then add the items that the user want to buy again to the cart. ' +
-    'Eventually you can purchase. ' +
-    'You should always ask for confirmation to the user before running this tool',
-  {},
-  async ({}) => {
-    // Mock the purchase confirmation for demonstration purposes
-    return {
-      content: [
-        {
-          type: 'text',
-          text: '✅ Purchase confirmed! You can now consult your orders history to see the details of your latest purchase.',
-        },
-      ],
-    }
-  }
-)
+// Upstream shipped a `perform-purchase` tool here. It never touched checkout —
+// it returned a hardcoded "Purchase confirmed!" string — while its description
+// told the model it completed a real order. Removed: a model calling it would
+// report a purchase that never happened. Checkout happens in a real browser.
 
 // Start the server
 async function main() {
