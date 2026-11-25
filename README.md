@@ -14,13 +14,13 @@ There is no purchase tool: checkout happens in your own browser.
 
 ## Demo
 
-Simple demo, showcasing a quick product search and purchase.
+Simple demo, showcasing a quick product search and purchase. (Recorded with the original fake purchase tool, which has since been removed: the connector now stops at the cart.)
 
 ![Demo GIF video](./demo.gif)
 
 ## Full Demo
 
-Another more complex demo with products search, leveraging Claude AI recommendations to compare and make a decision, then purchase.
+Another more complex demo with products search, leveraging Claude AI recommendations to compare and make a decision, then purchase (also recorded with the removed fake purchase tool).
 
 It showcases how natural and powerful the Amazon MCP integration could be inside a conversation
 
