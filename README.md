@@ -6,9 +6,11 @@ This server allows you to interact with Amazon's services using the MCP (Model C
 
 - **Product search**: Search for products on Amazon
 - **Product details**: Retrieve detailed information about a specific product on Amazon
-- **Cart management**: Add items or clear your Amazon cart
-- **Ordering**: Place orders (fake for demonstration purposes)
+- **Product variants**: List a product's sizes/colors with the price, stock and delivery date of each, optionally filtered (e.g. size "XX-Large")
+- **Cart management**: Add or remove single items, or clear your Amazon cart
 - **Orders history**: Retrieve your recent Amazon orders details
+
+There is no purchase tool: checkout happens in your own browser.
 
 ## Demo
 
@@ -38,9 +40,26 @@ Build the project
 npm run build
 ```
 
+## Amazon login (cookies)
+
+The server uses your Amazon session cookies, saved in `amazonCookies.json` in the project root. This file is gitignored: never commit or share it.
+
+Create it with the login helper, which opens a browser for you to sign in (finish any CAPTCHA or OTP there) and saves the cookies:
+
+```sh
+node login_and_save_cookies.cjs
+```
+
+Or export your cookies from a logged-in browser with an extension like Cookie-Editor (format: see `amazonCookies.example.json`). The Amazon site (amazon.com, amazon.de, ...) is detected from the cookies.
+
+When the server says you need to be logged in, refresh the cookies the same way (see `RELOGIN.md`).
+
 ## Claude Desktop Integration
 
-Create or update `~/Library/Application Support/Claude/claude_desktop_config.json` with the path to the MCP server.
+Add the server to Claude Desktop's config file:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -53,7 +72,9 @@ Create or update `~/Library/Application Support/Claude/claude_desktop_config.jso
 }
 ```
 
-Restart the Claude Desktop app to apply the changes. You should now see the Amazon MCP server listed in the Claude Desktop app.
+On Windows, use forward slashes in the path, e.g. `"C:/Users/you/mcp-server-amazon/build/index.js"`.
+
+Fully quit and reopen Claude Desktop to apply the changes (on Windows, quit from the tray icon; closing the window is not enough). Do the same after rebuilding or refreshing cookies: the server only loads them at startup. You should now see the Amazon MCP server listed in the Claude Desktop app.
 
 |                                  |                                    |
 | :------------------------------: | :--------------------------------: |
@@ -63,7 +84,10 @@ Restart the Claude Desktop app to apply the changes. You should now see the Amaz
 
 The MCP server logs its output to a file. If you encounter any issues, you can check the log file for more information.
 
-See `~/Library/Logs/Claude/mcp-server-amazon.log`
+- macOS: `~/Library/Logs/Claude/mcp-server-amazon.log`
+- Windows: `%APPDATA%\Claude\logs\mcp-server-amazon.log`
+
+A single connection error is usually Amazon's bot detection, not a logout: retry once before refreshing cookies.
 
 ## License
 
